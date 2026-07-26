@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EntrarEventoButton } from '@/components/EntrarEventoButton';
+import { ClientesSubNav } from '@/components/ClientesSubNav';
 
 export default async function ClientesPage() {
   const clientes = await listClientes();
@@ -24,6 +25,8 @@ export default async function ClientesPage() {
         <h1 className="text-2xl font-semibold">Clientes</h1>
         <p className="text-muted text-sm">Empresas que usam o PDV nos eventos delas.</p>
       </div>
+
+      <ClientesSubNav ativo="clientes" />
 
       <Card>
         <form action={createClienteAction} className="flex flex-wrap items-end gap-3">
