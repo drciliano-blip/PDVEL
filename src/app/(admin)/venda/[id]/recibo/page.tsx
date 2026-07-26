@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getVenda, listItensPorVenda } from '@/lib/data/vendas';
 import { getClienteAtivoId } from '@/lib/session';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { PrintButton } from '@/components/PrintButton';
 
 interface ReciboPageProps {
@@ -29,7 +31,16 @@ export default async function ReciboPage({ params }: ReciboPageProps) {
     <div className="max-w-md mx-auto flex flex-col gap-6">
       <div className="flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-semibold">Recibo</h1>
-        <PrintButton />
+        <div className="flex gap-2">
+          {venda.statusPagamento === 'pago' && (
+            <Link href={`/venda/${venda.id}/fichas`}>
+              <Button type="button" variant="secondary">
+                Imprimir fichas
+              </Button>
+            </Link>
+          )}
+          <PrintButton />
+        </div>
       </div>
 
       <Card className="flex flex-col gap-4">

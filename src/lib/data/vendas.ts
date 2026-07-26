@@ -4,6 +4,7 @@ import { getProduto, ajustarEstoque } from './produtos';
 import { getCliente } from './clientes';
 import { getConvidado } from './convidados';
 import { criarCobrancaPix, obterPixQrCode, type CustomerData } from '@/lib/asaas';
+import { gerarFichasParaVenda, cancelarFichasDaVenda } from './fichas';
 import type { FormaPagamento, StatusPagamento, Venda, VendaItem } from './types';
 
 export interface ItemCarrinho {
@@ -168,6 +169,10 @@ export async function criarVenda(params: {
     await ajustarEstoque(item.produtoId, -item.quantidade);
   }
 
+  if (statusPagamento === 'pago') {
+    await gerarFichasParaVenda(id, params.clienteId);
+  }
+
   return rowToVenda(data as VendaRow);
 }
 
@@ -183,6 +188,8 @@ export async function confirmarPagamento(vendaId: string): Promise<void> {
     .update({ status_pagamento: 'pago', pago_em: new Date().toISOString() })
     .eq('id', vendaId);
   if (error) throw error;
+
+  await gerarFichasParaVenda(vendaId, venda.clienteId);
 }
 
 export async function confirmarPagamentoPorAsaasPaymentId(asaasPaymentId: string): Promise<void> {
@@ -214,6 +221,8 @@ export async function cancelarVenda(vendaId: string, canceladoPor: string): Prom
   for (const item of itens) {
     await ajustarEstoque(item.produtoId, item.quantidade);
   }
+
+  await cancelarFichasDaVenda(vendaId);
 }
 
 export async function getVenda(id: string): Promise<Venda | undefined> {

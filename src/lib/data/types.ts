@@ -81,3 +81,18 @@ export interface Convidado {
   consentimentoLgpdEm: string | null;
   criadoEm: string;
 }
+
+export type StatusFicha = 'emitida' | 'resgatada' | 'cancelada';
+
+export interface Ficha {
+  id: string;
+  vendaId: string;
+  produtoId: string;
+  clienteId: string;
+  nomeProduto: string;
+  codigo: string;
+  status: StatusFicha;
+  emitidaEm: string;
+  resgatadaEm: string | null;
+  resgatadaPor: string | null;
+}
