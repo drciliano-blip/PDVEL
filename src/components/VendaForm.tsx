@@ -116,6 +116,14 @@ export function VendaForm({ produtos, eventoId, caixaId, clienteId }: VendaFormP
         </Button>
         <Button
           type="button"
+          variant="secondary"
+          disabled={isPending || itensCarrinho.length === 0}
+          onClick={() => finalizarVenda('cartao')}
+        >
+          Finalizar — Cartão
+        </Button>
+        <Button
+          type="button"
           disabled={isPending || itensCarrinho.length === 0}
           onClick={() => finalizarVenda('pix')}
         >

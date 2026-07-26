@@ -7,6 +7,7 @@ interface EventoRow {
   espaco_id: string | null;
   nome: string;
   data: string;
+  fichas_habilitadas: boolean;
 }
 
 interface EventoDetalheRow extends EventoRow {
@@ -22,6 +23,7 @@ function rowToEvento(row: EventoRow): Evento {
     espacoId: row.espaco_id,
     nome: row.nome,
     data: row.data,
+    fichasHabilitadas: row.fichas_habilitadas,
   };
 }
 
@@ -46,6 +48,7 @@ export async function createEvento(input: {
   espacoId?: string | null;
   nome: string;
   data: string;
+  fichasHabilitadas?: boolean;
 }): Promise<Evento> {
   const { data, error } = await supabase
     .from('eventos')
@@ -54,11 +57,22 @@ export async function createEvento(input: {
       espaco_id: input.espacoId ?? null,
       nome: input.nome,
       data: input.data,
+      fichas_habilitadas: input.fichasHabilitadas ?? false,
     })
     .select('*')
     .single();
   if (error) throw error;
   return rowToEvento(data as EventoRow);
+}
+
+export async function toggleFichasHabilitadas(eventoId: string): Promise<void> {
+  const evento = await getEvento(eventoId);
+  if (!evento) return;
+  const { error } = await supabase
+    .from('eventos')
+    .update({ fichas_habilitadas: !evento.fichasHabilitadas })
+    .eq('id', eventoId);
+  if (error) throw error;
 }
 
 export async function listTodosEventosComDetalhes(): Promise<EventoComDetalhes[]> {

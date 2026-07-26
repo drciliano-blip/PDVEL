@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getVenda, listItensPorVenda } from '@/lib/data/vendas';
 import { getClienteAtivoId } from '@/lib/session';
 import { PixQrCode } from '@/components/PixQrCode';
-import { PixStatusPoller } from '@/components/PixStatusPoller';
+import { AutoRefresh } from '@/components/AutoRefresh';
 
 interface PixPageProps {
   params: Promise<{ id: string }>;
@@ -55,7 +55,7 @@ export default async function PixPage({ params }: PixPageProps) {
           <p className="text-sm text-muted">
             Aguardando confirmação do pagamento — a tela atualiza sozinha.
           </p>
-          <PixStatusPoller />
+          <AutoRefresh />
         </>
       )}
 

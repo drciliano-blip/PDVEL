@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { createCliente, getCliente, salvarSubcontaAsaas } from '@/lib/data/clientes';
-import { createEvento } from '@/lib/data/eventos';
+import { createEvento, toggleFichasHabilitadas } from '@/lib/data/eventos';
 import { criarSubconta, type DadosSubconta } from '@/lib/asaas';
 
 export async function createClienteAction(formData: FormData): Promise<void> {
@@ -22,14 +22,21 @@ export async function createEventoAction(formData: FormData): Promise<void> {
   const nome = String(formData.get('nome') ?? '').trim();
   const data = String(formData.get('data') ?? '');
   const espacoId = String(formData.get('espacoId') ?? '').trim() || null;
+  const fichasHabilitadas = formData.get('fichasHabilitadas') === 'on';
 
   if (!clienteId || !nome || !data) {
     throw new Error('Preencha nome e data do evento.');
   }
 
-  await createEvento({ clienteId, espacoId, nome, data });
+  await createEvento({ clienteId, espacoId, nome, data, fichasHabilitadas });
   revalidatePath('/clientes');
   revalidatePath('/eventos');
+}
+
+export async function toggleFichasHabilitadasAction(eventoId: string): Promise<void> {
+  await toggleFichasHabilitadas(eventoId);
+  revalidatePath('/clientes');
+  revalidatePath('/clientes/eventos');
 }
 
 export async function criarSubcontaAsaasAction(clienteId: string, formData: FormData): Promise<void> {

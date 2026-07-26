@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getVenda, listItensPorVenda } from '@/lib/data/vendas';
+import { getEvento } from '@/lib/data/eventos';
 import { getClienteAtivoId } from '@/lib/session';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -16,6 +17,12 @@ const STATUS_LABEL = {
   cancelado: 'Cancelado',
 } as const;
 
+const FORMA_LABEL = {
+  pix: 'PIX',
+  dinheiro: 'Dinheiro',
+  cartao: 'Cartão',
+} as const;
+
 export default async function ReciboPage({ params }: ReciboPageProps) {
   const { id } = await params;
   const clienteId = await getClienteAtivoId();
@@ -25,14 +32,14 @@ export default async function ReciboPage({ params }: ReciboPageProps) {
     notFound();
   }
 
-  const itens = await listItensPorVenda(venda.id);
+  const [itens, evento] = await Promise.all([listItensPorVenda(venda.id), getEvento(venda.eventoId)]);
 
   return (
     <div className="max-w-md mx-auto flex flex-col gap-6">
       <div className="flex items-center justify-between print:hidden">
         <h1 className="text-2xl font-semibold">Recibo</h1>
         <div className="flex gap-2">
-          {venda.statusPagamento === 'pago' && (
+          {venda.statusPagamento === 'pago' && evento?.fichasHabilitadas && (
             <Link href={`/venda/${venda.id}/fichas`}>
               <Button type="button" variant="secondary">
                 Imprimir fichas
@@ -69,7 +76,7 @@ export default async function ReciboPage({ params }: ReciboPageProps) {
 
         <div className="flex justify-between text-sm text-muted">
           <span>Forma de pagamento</span>
-          <span>{venda.formaPagamento === 'pix' ? 'PIX' : 'Dinheiro'}</span>
+          <span>{FORMA_LABEL[venda.formaPagamento]}</span>
         </div>
         <div className="flex justify-between text-sm text-muted">
           <span>Status</span>

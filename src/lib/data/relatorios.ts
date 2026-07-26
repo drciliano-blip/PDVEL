@@ -6,6 +6,14 @@ export interface RelatorioVendas {
   porFormaPagamento: { formaPagamento: string; total: number; quantidadeVendas: number }[];
   porProduto: { produtoId: string; nome: string; quantidade: number; total: number }[];
   porOperador: { operador: string; total: number; quantidadeVendas: number }[];
+  porHora: { hora: number; total: number; quantidadeVendas: number }[];
+  porCaixa: {
+    caixaId: string;
+    operador: string;
+    eventoNome: string;
+    total: number;
+    quantidadeVendas: number;
+  }[];
 }
 
 interface VendaRow {
@@ -14,12 +22,13 @@ interface VendaRow {
   caixa_id: string;
   forma_pagamento: string;
   total: number;
+  criado_em: string;
 }
 
 export async function gerarRelatorioVendas(clienteId: string): Promise<RelatorioVendas> {
   const { data: vendasData, error: vendasError } = await supabase
     .from('vendas')
-    .select('id, evento_id, caixa_id, forma_pagamento, total')
+    .select('id, evento_id, caixa_id, forma_pagamento, total, criado_em')
     .eq('cliente_id', clienteId)
     .eq('status_pagamento', 'pago');
   if (vendasError) throw vendasError;
@@ -28,7 +37,15 @@ export async function gerarRelatorioVendas(clienteId: string): Promise<Relatorio
   const totalGeral = vendas.reduce((sum, v) => sum + v.total, 0);
 
   if (vendas.length === 0) {
-    return { totalGeral: 0, porEvento: [], porFormaPagamento: [], porProduto: [], porOperador: [] };
+    return {
+      totalGeral: 0,
+      porEvento: [],
+      porFormaPagamento: [],
+      porProduto: [],
+      porOperador: [],
+      porHora: [],
+      porCaixa: [],
+    };
   }
 
   const eventoIds = [...new Set(vendas.map((v) => v.evento_id))];
@@ -49,6 +66,11 @@ export async function gerarRelatorioVendas(clienteId: string): Promise<Relatorio
   const porEventoMap = new Map<string, { eventoNome: string; total: number; quantidadeVendas: number }>();
   const porFormaMap = new Map<string, { total: number; quantidadeVendas: number }>();
   const porOperadorMap = new Map<string, { total: number; quantidadeVendas: number }>();
+  const porHoraMap = new Map<number, { total: number; quantidadeVendas: number }>();
+  const porCaixaMap = new Map<
+    string,
+    { operador: string; eventoNome: string; total: number; quantidadeVendas: number }
+  >();
 
   for (const venda of vendas) {
     const nomeEvento = eventoNomeMap.get(venda.evento_id) ?? venda.evento_id;
@@ -71,6 +93,22 @@ export async function gerarRelatorioVendas(clienteId: string): Promise<Relatorio
     atualOperador.total += venda.total;
     atualOperador.quantidadeVendas += 1;
     porOperadorMap.set(operador, atualOperador);
+
+    const hora = new Date(venda.criado_em).getHours();
+    const atualHora = porHoraMap.get(hora) ?? { total: 0, quantidadeVendas: 0 };
+    atualHora.total += venda.total;
+    atualHora.quantidadeVendas += 1;
+    porHoraMap.set(hora, atualHora);
+
+    const atualCaixa = porCaixaMap.get(venda.caixa_id) ?? {
+      operador,
+      eventoNome: nomeEvento,
+      total: 0,
+      quantidadeVendas: 0,
+    };
+    atualCaixa.total += venda.total;
+    atualCaixa.quantidadeVendas += 1;
+    porCaixaMap.set(venda.caixa_id, atualCaixa);
   }
 
   const porProdutoMap = new Map<string, { nome: string; quantidade: number; total: number }>();
@@ -88,7 +126,13 @@ export async function gerarRelatorioVendas(clienteId: string): Promise<Relatorio
       formaPagamento,
       ...v,
     })),
-    porProduto: Array.from(porProdutoMap.entries()).map(([produtoId, v]) => ({ produtoId, ...v })),
+    porProduto: Array.from(porProdutoMap.entries())
+      .map(([produtoId, v]) => ({ produtoId, ...v }))
+      .sort((a, b) => b.quantidade - a.quantidade),
     porOperador: Array.from(porOperadorMap.entries()).map(([operador, v]) => ({ operador, ...v })),
+    porHora: Array.from(porHoraMap.entries())
+      .map(([hora, v]) => ({ hora, ...v }))
+      .sort((a, b) => a.hora - b.hora),
+    porCaixa: Array.from(porCaixaMap.entries()).map(([caixaId, v]) => ({ caixaId, ...v })),
   };
 }

@@ -25,15 +25,38 @@ function rowToCaixa(row: CaixaRow): Caixa {
   };
 }
 
+export async function getCaixa(id: string): Promise<Caixa | undefined> {
+  const { data, error } = await supabase.from('caixas').select('*').eq('id', id).maybeSingle();
+  if (error) throw error;
+  return data ? rowToCaixa(data as CaixaRow) : undefined;
+}
+
+/**
+ * Usado pelo totem (kiosk único por evento): pega qualquer caixa aberto,
+ * já que não há como o convidado escolher "qual" caixa é o dele.
+ */
 export async function getCaixaAbertoPorEvento(eventoId: string): Promise<Caixa | undefined> {
   const { data, error } = await supabase
     .from('caixas')
     .select('*')
     .eq('evento_id', eventoId)
     .eq('status', 'aberto')
+    .order('aberto_em', { ascending: false })
+    .limit(1)
     .maybeSingle();
   if (error) throw error;
   return data ? rowToCaixa(data as CaixaRow) : undefined;
+}
+
+export async function listCaixasAbertosPorEvento(eventoId: string): Promise<Caixa[]> {
+  const { data, error } = await supabase
+    .from('caixas')
+    .select('*')
+    .eq('evento_id', eventoId)
+    .eq('status', 'aberto')
+    .order('aberto_em', { ascending: false });
+  if (error) throw error;
+  return (data as CaixaRow[]).map(rowToCaixa);
 }
 
 export async function listCaixasPorEvento(eventoId: string): Promise<Caixa[]> {
@@ -46,15 +69,15 @@ export async function listCaixasPorEvento(eventoId: string): Promise<Caixa[]> {
   return (data as CaixaRow[]).map(rowToCaixa);
 }
 
+/**
+ * Sem trava de "um caixa por evento" — vários operadores (totem, caixas
+ * volantes, tablets) podem vender ao mesmo tempo no mesmo evento.
+ */
 export async function abrirCaixa(
   eventoId: string,
   operador: string,
   valorAbertura: number
 ): Promise<Caixa> {
-  const existente = await getCaixaAbertoPorEvento(eventoId);
-  if (existente) {
-    throw new Error('Já existe um caixa aberto para este evento.');
-  }
   const { data, error } = await supabase
     .from('caixas')
     .insert({ evento_id: eventoId, operador, status: 'aberto', valor_abertura: valorAbertura })

@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase/client';
 import { getProduto, ajustarEstoque } from './produtos';
 import { getCliente } from './clientes';
 import { getConvidado } from './convidados';
+import { getEvento } from './eventos';
 import { criarCobrancaPix, obterPixQrCode, type CustomerData } from '@/lib/asaas';
 import { gerarFichasParaVenda, cancelarFichasDaVenda } from './fichas';
 import type { FormaPagamento, StatusPagamento, Venda, VendaItem } from './types';
@@ -96,8 +97,8 @@ export async function criarVenda(params: {
   let asaasPaymentId: string | null = null;
   let pixPayload: string | null = null;
   let pixQrCodeBase64: string | null = null;
-  const statusPagamento: StatusPagamento = params.formaPagamento === 'dinheiro' ? 'pago' : 'pendente';
-  const pagoEm: string | null = params.formaPagamento === 'dinheiro' ? agora : null;
+  const statusPagamento: StatusPagamento = params.formaPagamento !== 'pix' ? 'pago' : 'pendente';
+  const pagoEm: string | null = params.formaPagamento !== 'pix' ? agora : null;
 
   if (params.formaPagamento === 'pix') {
     const cliente = await getCliente(params.clienteId);
@@ -170,7 +171,10 @@ export async function criarVenda(params: {
   }
 
   if (statusPagamento === 'pago') {
-    await gerarFichasParaVenda(id, params.clienteId);
+    const evento = await getEvento(params.eventoId);
+    if (evento?.fichasHabilitadas) {
+      await gerarFichasParaVenda(id, params.clienteId);
+    }
   }
 
   return rowToVenda(data as VendaRow);
@@ -189,7 +193,10 @@ export async function confirmarPagamento(vendaId: string): Promise<void> {
     .eq('id', vendaId);
   if (error) throw error;
 
-  await gerarFichasParaVenda(vendaId, venda.clienteId);
+  const evento = await getEvento(venda.eventoId);
+  if (evento?.fichasHabilitadas) {
+    await gerarFichasParaVenda(vendaId, venda.clienteId);
+  }
 }
 
 export async function confirmarPagamentoPorAsaasPaymentId(asaasPaymentId: string): Promise<void> {

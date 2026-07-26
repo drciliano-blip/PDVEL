@@ -25,6 +25,7 @@ create table eventos (
   espaco_id uuid references espacos (id),
   nome text not null,
   data date not null,
+  fichas_habilitadas boolean not null default false,
   criado_em timestamptz not null default now()
 );
 create index eventos_cliente_id_idx on eventos (cliente_id);
@@ -75,7 +76,7 @@ create table vendas (
   cliente_id uuid not null references clientes (id) on delete cascade,
   convidado_id uuid references convidados (id) on delete set null,
   total numeric not null,
-  forma_pagamento text not null check (forma_pagamento in ('pix', 'dinheiro')),
+  forma_pagamento text not null check (forma_pagamento in ('pix', 'dinheiro', 'cartao')),
   status_pagamento text not null check (status_pagamento in ('pendente', 'pago', 'cancelado')),
   asaas_payment_id text,
   pix_payload text,
@@ -115,6 +116,18 @@ create table fichas (
 create index fichas_venda_id_idx on fichas (venda_id);
 create index fichas_cliente_id_idx on fichas (cliente_id);
 
+create table contagens_estoque (
+  id uuid primary key default gen_random_uuid(),
+  caixa_id uuid not null references caixas (id) on delete cascade,
+  produto_id uuid not null references produtos (id),
+  categoria text not null,
+  quantidade_esperada integer not null,
+  quantidade_contada integer not null,
+  diferenca integer not null,
+  criado_em timestamptz not null default now()
+);
+create index contagens_estoque_caixa_id_idx on contagens_estoque (caixa_id);
+
 -- RLS habilitado sem políticas: bloqueia qualquer acesso via chave pública (publishable).
 -- O app usa a chave secreta (service role) no servidor, que ignora RLS.
 alter table clientes enable row level security;
@@ -126,3 +139,4 @@ alter table convidados enable row level security;
 alter table vendas enable row level security;
 alter table venda_itens enable row level security;
 alter table fichas enable row level security;
+alter table contagens_estoque enable row level security;

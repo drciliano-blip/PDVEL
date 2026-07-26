@@ -1,4 +1,4 @@
-export type FormaPagamento = 'pix' | 'dinheiro';
+export type FormaPagamento = 'pix' | 'dinheiro' | 'cartao';
 export type StatusPagamento = 'pendente' | 'pago' | 'cancelado';
 export type StatusCaixa = 'aberto' | 'fechado';
 
@@ -19,6 +19,7 @@ export interface Evento {
   espacoId: string | null;
   nome: string;
   data: string;
+  fichasHabilitadas: boolean;
 }
 
 export interface Espaco {
@@ -91,6 +92,17 @@ export interface Convidado {
   email: string | null;
   numeroCartaoConsumo: string | null;
   consentimentoLgpdEm: string | null;
+  criadoEm: string;
+}
+
+export interface ContagemEstoque {
+  id: string;
+  caixaId: string;
+  produtoId: string;
+  categoria: string;
+  quantidadeEsperada: number;
+  quantidadeContada: number;
+  diferenca: number;
   criadoEm: string;
 }
 

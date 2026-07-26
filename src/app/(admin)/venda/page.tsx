@@ -1,8 +1,7 @@
 import Link from 'next/link';
 import { listEventosByCliente } from '@/lib/data/eventos';
-import { getCaixaAbertoPorEvento } from '@/lib/data/caixas';
 import { listProdutosByCliente } from '@/lib/data/produtos';
-import { getClienteAtivoId } from '@/lib/session';
+import { getClienteAtivoId, getCaixaAtivoId } from '@/lib/session';
 import { VendaForm } from '@/components/VendaForm';
 import { SemClienteAtivo } from '@/components/SemClienteAtivo';
 
@@ -22,7 +21,7 @@ export default async function VendaPage({ searchParams }: VendaPageProps) {
   }
 
   const eventoAtivo = eventos.find((e) => e.id === eventoParam) ?? eventos[0];
-  const caixaAberto = await getCaixaAbertoPorEvento(eventoAtivo.id);
+  const caixaAtivoId = await getCaixaAtivoId(eventoAtivo.id);
   const produtos = (await listProdutosByCliente(clienteId)).filter((p) => p.ativo);
 
   return (
@@ -48,11 +47,11 @@ export default async function VendaPage({ searchParams }: VendaPageProps) {
         ))}
       </div>
 
-      {!caixaAberto ? (
+      {!caixaAtivoId ? (
         <div className="rounded-lg border border-warning/30 bg-warning-bg p-5">
-          <p className="text-warning">Não há caixa aberto para este evento.</p>
+          <p className="text-warning">Este aparelho ainda não tem um caixa aberto neste evento.</p>
           <Link href={`/caixa?evento=${eventoAtivo.id}`} className="text-sm text-warning underline">
-            Abrir caixa
+            Abrir ou escolher um caixa
           </Link>
         </div>
       ) : produtos.length === 0 ? (
@@ -66,7 +65,7 @@ export default async function VendaPage({ searchParams }: VendaPageProps) {
         <VendaForm
           produtos={produtos}
           eventoId={eventoAtivo.id}
-          caixaId={caixaAberto.id}
+          caixaId={caixaAtivoId}
           clienteId={clienteId}
         />
       )}

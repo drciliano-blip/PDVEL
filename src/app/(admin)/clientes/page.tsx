@@ -1,7 +1,12 @@
 import { listClientes } from '@/lib/data/clientes';
 import { listEventosByCliente } from '@/lib/data/eventos';
 import { listEspacos } from '@/lib/data/espacos';
-import { createClienteAction, createEventoAction, criarSubcontaAsaasAction } from './actions';
+import {
+  createClienteAction,
+  createEventoAction,
+  criarSubcontaAsaasAction,
+  toggleFichasHabilitadasAction,
+} from './actions';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
@@ -62,14 +67,23 @@ export default async function ClientesPage() {
             ) : (
               <ul className="flex flex-col gap-2 text-sm">
                 {eventos.map((evento) => (
-                  <li key={evento.id} className="flex items-center justify-between gap-2">
+                  <li key={evento.id} className="flex items-center justify-between gap-2 flex-wrap">
                     <span>
                       {evento.nome}{' '}
                       <span className="text-muted">
                         · {new Date(evento.data).toLocaleDateString('pt-BR')}
                       </span>
                     </span>
-                    <EntrarEventoButton eventoId={evento.id} clienteId={cliente.id} />
+                    <div className="flex items-center gap-2">
+                      <form action={toggleFichasHabilitadasAction.bind(null, evento.id)}>
+                        <Button type="submit" variant="ghost" size="sm">
+                          <Badge tone={evento.fichasHabilitadas ? 'success' : 'neutral'}>
+                            {evento.fichasHabilitadas ? 'Fichas habilitadas' : 'Fichas desabilitadas'}
+                          </Badge>
+                        </Button>
+                      </form>
+                      <EntrarEventoButton eventoId={evento.id} clienteId={cliente.id} />
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -100,6 +114,10 @@ export default async function ClientesPage() {
                   ))}
                 </select>
               </div>
+              <label className="flex items-center gap-2 text-sm text-muted pb-2.5">
+                <input type="checkbox" name="fichasHabilitadas" className="w-4 h-4" />
+                Habilitar impressão de fichas
+              </label>
               <Button type="submit" variant="secondary" size="sm">
                 Adicionar evento
               </Button>

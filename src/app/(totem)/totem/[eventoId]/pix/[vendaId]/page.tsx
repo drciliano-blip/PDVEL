@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { getVenda, listItensPorVenda } from '@/lib/data/vendas';
 import { getEvento } from '@/lib/data/eventos';
 import { PixQrCode } from '@/components/PixQrCode';
-import { PixStatusPoller } from '@/components/PixStatusPoller';
+import { AutoRefresh } from '@/components/AutoRefresh';
 import { TotemAutoReset } from '@/components/TotemAutoReset';
 import { PrintButton } from '@/components/PrintButton';
 
@@ -52,7 +52,7 @@ export default async function TotemPixPage({ params }: TotemPixPageProps) {
         <>
           <PixQrCode qrCodeBase64={venda.pixQrCodeBase64} payload={venda.pixPayload} />
           <p className="text-muted">Escaneie para pagar. A tela atualiza sozinha ao confirmar.</p>
-          <PixStatusPoller />
+          <AutoRefresh />
         </>
       )}
     </div>
