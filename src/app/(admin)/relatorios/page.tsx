@@ -1,9 +1,12 @@
 import { gerarRelatorioVendas } from '@/lib/data/relatorios';
 import { getClienteAtivoId } from '@/lib/session';
 import { Card } from '@/components/ui/Card';
+import { SemClienteAtivo } from '@/components/SemClienteAtivo';
 
 export default async function RelatoriosPage() {
   const clienteId = await getClienteAtivoId();
+  if (!clienteId) return <SemClienteAtivo />;
+
   const relatorio = await gerarRelatorioVendas(clienteId);
 
   return (

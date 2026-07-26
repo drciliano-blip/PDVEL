@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { SemClienteAtivo } from '@/components/SemClienteAtivo';
 
 const STATUS_TONE = {
   pago: 'success',
@@ -27,6 +28,8 @@ interface CaixaPageProps {
 
 export default async function CaixaPage({ searchParams }: CaixaPageProps) {
   const clienteId = await getClienteAtivoId();
+  if (!clienteId) return <SemClienteAtivo />;
+
   const eventos = await listEventosByCliente(clienteId);
   const { evento: eventoParam } = await searchParams;
 

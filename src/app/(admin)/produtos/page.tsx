@@ -5,9 +5,12 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { SemClienteAtivo } from '@/components/SemClienteAtivo';
 
 export default async function ProdutosPage() {
   const clienteId = await getClienteAtivoId();
+  if (!clienteId) return <SemClienteAtivo />;
+
   const produtos = await listProdutosByCliente(clienteId);
   const porCategoria = new Map<string, typeof produtos>();
   for (const produto of produtos) {

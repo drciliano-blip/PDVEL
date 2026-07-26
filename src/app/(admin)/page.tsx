@@ -13,6 +13,22 @@ const ATALHOS = [
 
 export default async function Home() {
   const clienteId = await getClienteAtivoId();
+
+  if (!clienteId) {
+    return (
+      <div className="flex flex-col gap-4">
+        <h1 className="text-2xl font-semibold">Bem-vindo</h1>
+        <p className="text-muted">
+          Nenhuma empresa-cliente cadastrada ainda.{' '}
+          <Link href="/clientes" className="text-accent underline">
+            Cadastre a primeira em Clientes
+          </Link>{' '}
+          para começar.
+        </p>
+      </div>
+    );
+  }
+
   const cliente = await getCliente(clienteId);
   const eventos = await listEventosByCliente(clienteId);
 

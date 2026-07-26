@@ -6,12 +6,16 @@ import { setClienteAtivoAction } from '@/app/(admin)/actions/cliente-ativo';
 
 interface ClienteSelectorProps {
   clientes: { id: string; nome: string }[];
-  ativoId: string;
+  ativoId: string | null;
 }
 
 export function ClienteSelector({ clientes, ativoId }: ClienteSelectorProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+
+  if (clientes.length === 0 || !ativoId) {
+    return null;
+  }
 
   return (
     <label className="flex items-center gap-2 text-sm">
