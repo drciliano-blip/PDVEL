@@ -1,13 +1,16 @@
 import { listClientes } from '@/lib/data/clientes';
 import { listEventosByCliente } from '@/lib/data/eventos';
+import { listEspacos } from '@/lib/data/espacos';
 import { createClienteAction, createEventoAction, criarSubcontaAsaasAction } from './actions';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+import { EntrarEventoButton } from '@/components/EntrarEventoButton';
 
 export default async function ClientesPage() {
   const clientes = await listClientes();
+  const espacos = await listEspacos();
   const eventosPorCliente = await Promise.all(
     clientes.map(async (cliente) => ({
       cliente,
@@ -54,11 +57,16 @@ export default async function ClientesPage() {
             {eventos.length === 0 ? (
               <p className="text-sm text-muted">Nenhum evento cadastrado ainda.</p>
             ) : (
-              <ul className="flex flex-col gap-1 text-sm">
+              <ul className="flex flex-col gap-2 text-sm">
                 {eventos.map((evento) => (
-                  <li key={evento.id} className="flex justify-between">
-                    <span>{evento.nome}</span>
-                    <span className="text-muted">{new Date(evento.data).toLocaleDateString('pt-BR')}</span>
+                  <li key={evento.id} className="flex items-center justify-between gap-2">
+                    <span>
+                      {evento.nome}{' '}
+                      <span className="text-muted">
+                        · {new Date(evento.data).toLocaleDateString('pt-BR')}
+                      </span>
+                    </span>
+                    <EntrarEventoButton eventoId={evento.id} clienteId={cliente.id} />
                   </li>
                 ))}
               </ul>
@@ -73,6 +81,21 @@ export default async function ClientesPage() {
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-muted">Data</label>
                 <Input name="data" type="date" required />
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-xs text-muted">Espaço</label>
+                <select
+                  name="espacoId"
+                  className="h-11 rounded-lg border border-border bg-surface px-3 text-sm"
+                  defaultValue=""
+                >
+                  <option value="">Sem espaço definido</option>
+                  {espacos.map((espaco) => (
+                    <option key={espaco.id} value={espaco.id}>
+                      {espaco.nome}
+                    </option>
+                  ))}
+                </select>
               </div>
               <Button type="submit" variant="secondary" size="sm">
                 Adicionar evento

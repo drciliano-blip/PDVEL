@@ -13,9 +13,16 @@ create table clientes (
   criado_em timestamptz not null default now()
 );
 
+create table espacos (
+  id uuid primary key default gen_random_uuid(),
+  nome text not null,
+  criado_em timestamptz not null default now()
+);
+
 create table eventos (
   id uuid primary key default gen_random_uuid(),
   cliente_id uuid not null references clientes (id) on delete cascade,
+  espaco_id uuid references espacos (id),
   nome text not null,
   data date not null,
   criado_em timestamptz not null default now()
@@ -111,6 +118,7 @@ create index fichas_cliente_id_idx on fichas (cliente_id);
 -- RLS habilitado sem políticas: bloqueia qualquer acesso via chave pública (publishable).
 -- O app usa a chave secreta (service role) no servidor, que ignora RLS.
 alter table clientes enable row level security;
+alter table espacos enable row level security;
 alter table eventos enable row level security;
 alter table produtos enable row level security;
 alter table caixas enable row level security;

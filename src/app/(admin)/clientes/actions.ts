@@ -21,13 +21,15 @@ export async function createEventoAction(formData: FormData): Promise<void> {
   const clienteId = String(formData.get('clienteId') ?? '');
   const nome = String(formData.get('nome') ?? '').trim();
   const data = String(formData.get('data') ?? '');
+  const espacoId = String(formData.get('espacoId') ?? '').trim() || null;
 
   if (!clienteId || !nome || !data) {
     throw new Error('Preencha nome e data do evento.');
   }
 
-  await createEvento({ clienteId, nome, data });
+  await createEvento({ clienteId, espacoId, nome, data });
   revalidatePath('/clientes');
+  revalidatePath('/eventos');
 }
 
 export async function criarSubcontaAsaasAction(clienteId: string, formData: FormData): Promise<void> {

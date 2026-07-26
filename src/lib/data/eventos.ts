@@ -1,15 +1,28 @@
 import { supabase } from '@/lib/supabase/client';
-import type { Evento } from './types';
+import type { Evento, EventoComDetalhes, StatusCaixa } from './types';
 
 interface EventoRow {
   id: string;
   cliente_id: string;
+  espaco_id: string | null;
   nome: string;
   data: string;
 }
 
+interface EventoDetalheRow extends EventoRow {
+  clientes: { nome: string } | null;
+  espacos: { nome: string } | null;
+  caixas: { status: StatusCaixa }[];
+}
+
 function rowToEvento(row: EventoRow): Evento {
-  return { id: row.id, clienteId: row.cliente_id, nome: row.nome, data: row.data };
+  return {
+    id: row.id,
+    clienteId: row.cliente_id,
+    espacoId: row.espaco_id,
+    nome: row.nome,
+    data: row.data,
+  };
 }
 
 export async function listEventosByCliente(clienteId: string): Promise<Evento[]> {
@@ -30,14 +43,39 @@ export async function getEvento(id: string): Promise<Evento | undefined> {
 
 export async function createEvento(input: {
   clienteId: string;
+  espacoId?: string | null;
   nome: string;
   data: string;
 }): Promise<Evento> {
   const { data, error } = await supabase
     .from('eventos')
-    .insert({ cliente_id: input.clienteId, nome: input.nome, data: input.data })
+    .insert({
+      cliente_id: input.clienteId,
+      espaco_id: input.espacoId ?? null,
+      nome: input.nome,
+      data: input.data,
+    })
     .select('*')
     .single();
   if (error) throw error;
   return rowToEvento(data as EventoRow);
+}
+
+export async function listTodosEventosComDetalhes(): Promise<EventoComDetalhes[]> {
+  const { data, error } = await supabase
+    .from('eventos')
+    .select('*, clientes(nome), espacos(nome), caixas(status)')
+    .order('data', { ascending: false });
+  if (error) throw error;
+
+  return (data as EventoDetalheRow[]).map((row) => ({
+    ...rowToEvento(row),
+    clienteNome: row.clientes?.nome ?? 'Desconhecido',
+    espacoNome: row.espacos?.nome ?? null,
+    statusCaixa: row.caixas.some((c) => c.status === 'aberto')
+      ? 'aberto'
+      : row.caixas.length > 0
+        ? 'fechado'
+        : null,
+  }));
 }

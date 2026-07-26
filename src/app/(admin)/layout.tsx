@@ -12,6 +12,8 @@ export const metadata: Metadata = {
 };
 
 const NAV_ITEMS = [
+  { href: "/eventos", label: "Eventos" },
+  { href: "/espacos", label: "Espaços" },
   { href: "/clientes", label: "Clientes" },
   { href: "/produtos", label: "Produtos" },
   { href: "/caixa", label: "Caixa" },

@@ -16,8 +16,20 @@ export interface Cliente {
 export interface Evento {
   id: string;
   clienteId: string;
+  espacoId: string | null;
   nome: string;
   data: string;
+}
+
+export interface Espaco {
+  id: string;
+  nome: string;
+}
+
+export interface EventoComDetalhes extends Evento {
+  clienteNome: string;
+  espacoNome: string | null;
+  statusCaixa: StatusCaixa | null;
 }
 
 export interface Produto {
