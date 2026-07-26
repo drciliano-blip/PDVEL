@@ -21,7 +21,6 @@ export function VendaForm({ produtos, eventoId, caixaId, clienteId }: VendaFormP
   const [quantidades, setQuantidades] = useState<Record<string, number>>({});
   const [convidado, setConvidado] = useState<Convidado | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [ultimaVendaDinheiro, setUltimaVendaDinheiro] = useState<{ total: number } | null>(null);
   const [carrinhoAberto, setCarrinhoAberto] = useState(false);
 
   const porCategoria = useMemo(() => {
@@ -49,11 +48,11 @@ export function VendaForm({ produtos, eventoId, caixaId, clienteId }: VendaFormP
 
   const total = itensCarrinho.reduce((sum, i) => sum + i.precoUnit * i.quantidade, 0);
 
-  function alterarQuantidade(produtoId: string, delta: number) {
-    setUltimaVendaDinheiro(null);
+  function alterarQuantidade(produto: Produto, delta: number) {
     setQuantidades((atual) => {
-      const nova = Math.max(0, (atual[produtoId] ?? 0) + delta);
-      return { ...atual, [produtoId]: nova };
+      const limite = produto.estoque ?? Infinity;
+      const nova = Math.min(limite, Math.max(0, (atual[produto.id] ?? 0) + delta));
+      return { ...atual, [produto.id]: nova };
     });
   }
 
@@ -74,7 +73,7 @@ export function VendaForm({ produtos, eventoId, caixaId, clienteId }: VendaFormP
         if (formaPagamento === 'pix') {
           router.push(`/venda/${venda.id}/pix`);
         } else {
-          setUltimaVendaDinheiro({ total: venda.total });
+          router.push(`/venda/${venda.id}/recibo`);
         }
       } catch (e) {
         setErro(e instanceof Error ? e.message : 'Erro ao registrar a venda.');
@@ -105,11 +104,6 @@ export function VendaForm({ produtos, eventoId, caixaId, clienteId }: VendaFormP
       </div>
 
       {erro && <p className="text-sm text-danger">{erro}</p>}
-      {ultimaVendaDinheiro && (
-        <p className="text-sm text-success">
-          Venda de R$ {ultimaVendaDinheiro.total.toFixed(2)} registrada e paga em dinheiro.
-        </p>
-      )}
 
       <div className="flex flex-col gap-2">
         <Button
@@ -144,34 +138,46 @@ export function VendaForm({ produtos, eventoId, caixaId, clienteId }: VendaFormP
           <div key={categoria}>
             <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-2">{categoria}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {itens.map((produto) => (
-                <div
-                  key={produto.id}
-                  className="flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-2"
-                >
-                  <div>
-                    <p className="text-sm">{produto.nome}</p>
-                    <p className="text-xs text-muted">R$ {produto.preco.toFixed(2)}</p>
+              {itens.map((produto) => {
+                const esgotado = produto.estoque === 0;
+                const noLimite =
+                  produto.estoque !== null && (quantidades[produto.id] ?? 0) >= produto.estoque;
+                return (
+                  <div
+                    key={produto.id}
+                    className="flex items-center justify-between rounded-lg border border-border bg-surface px-3 py-2"
+                  >
+                    <div>
+                      <p className="text-sm">{produto.nome}</p>
+                      <p className="text-xs text-muted">
+                        R$ {produto.preco.toFixed(2)}
+                        {esgotado && <span className="text-danger"> · Esgotado</span>}
+                        {!esgotado && produto.estoque !== null && (
+                          <span> · {produto.estoque} em estoque</span>
+                        )}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => alterarQuantidade(produto, -1)}
+                        className="w-11 h-11 rounded-lg border border-border text-lg hover:bg-surface-muted"
+                      >
+                        −
+                      </button>
+                      <span className="w-5 text-center text-sm">{quantidades[produto.id] ?? 0}</span>
+                      <button
+                        type="button"
+                        onClick={() => alterarQuantidade(produto, 1)}
+                        disabled={esgotado || noLimite}
+                        className="w-11 h-11 rounded-lg border border-border text-lg hover:bg-surface-muted disabled:opacity-30 disabled:pointer-events-none"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => alterarQuantidade(produto.id, -1)}
-                      className="w-11 h-11 rounded-lg border border-border text-lg hover:bg-surface-muted"
-                    >
-                      −
-                    </button>
-                    <span className="w-5 text-center text-sm">{quantidades[produto.id] ?? 0}</span>
-                    <button
-                      type="button"
-                      onClick={() => alterarQuantidade(produto.id, 1)}
-                      className="w-11 h-11 rounded-lg border border-border text-lg hover:bg-surface-muted"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { abrirCaixa, fecharCaixa } from '@/lib/data/caixas';
+import { cancelarVenda } from '@/lib/data/vendas';
 
 export async function abrirCaixaAction(formData: FormData): Promise<void> {
   const eventoId = String(formData.get('eventoId') ?? '');
@@ -28,4 +29,10 @@ export async function fecharCaixaAction(formData: FormData): Promise<void> {
   await fecharCaixa(caixaId, valorFechamento);
   revalidatePath('/caixa');
   revalidatePath('/venda');
+}
+
+export async function cancelarVendaAction(vendaId: string, operador: string): Promise<void> {
+  await cancelarVenda(vendaId, operador);
+  revalidatePath('/caixa');
+  revalidatePath('/relatorios');
 }

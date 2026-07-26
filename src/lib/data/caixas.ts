@@ -1,14 +1,49 @@
-import { store, nextId } from './store';
+import { supabase } from '@/lib/supabase/client';
 import type { Caixa } from './types';
 
+interface CaixaRow {
+  id: string;
+  evento_id: string;
+  operador: string;
+  status: 'aberto' | 'fechado';
+  valor_abertura: number;
+  valor_fechamento: number | null;
+  aberto_em: string;
+  fechado_em: string | null;
+}
+
+function rowToCaixa(row: CaixaRow): Caixa {
+  return {
+    id: row.id,
+    eventoId: row.evento_id,
+    operador: row.operador,
+    status: row.status,
+    valorAbertura: row.valor_abertura,
+    valorFechamento: row.valor_fechamento,
+    abertoEm: row.aberto_em,
+    fechadoEm: row.fechado_em,
+  };
+}
+
 export async function getCaixaAbertoPorEvento(eventoId: string): Promise<Caixa | undefined> {
-  return store.caixas.find((c) => c.eventoId === eventoId && c.status === 'aberto');
+  const { data, error } = await supabase
+    .from('caixas')
+    .select('*')
+    .eq('evento_id', eventoId)
+    .eq('status', 'aberto')
+    .maybeSingle();
+  if (error) throw error;
+  return data ? rowToCaixa(data as CaixaRow) : undefined;
 }
 
 export async function listCaixasPorEvento(eventoId: string): Promise<Caixa[]> {
-  return store.caixas
-    .filter((c) => c.eventoId === eventoId)
-    .sort((a, b) => b.abertoEm.localeCompare(a.abertoEm));
+  const { data, error } = await supabase
+    .from('caixas')
+    .select('*')
+    .eq('evento_id', eventoId)
+    .order('aberto_em', { ascending: false });
+  if (error) throw error;
+  return (data as CaixaRow[]).map(rowToCaixa);
 }
 
 export async function abrirCaixa(
@@ -20,24 +55,23 @@ export async function abrirCaixa(
   if (existente) {
     throw new Error('Já existe um caixa aberto para este evento.');
   }
-  const caixa: Caixa = {
-    id: nextId('caixa'),
-    eventoId,
-    operador,
-    status: 'aberto',
-    valorAbertura,
-    valorFechamento: null,
-    abertoEm: new Date().toISOString(),
-    fechadoEm: null,
-  };
-  store.caixas.push(caixa);
-  return caixa;
+  const { data, error } = await supabase
+    .from('caixas')
+    .insert({ evento_id: eventoId, operador, status: 'aberto', valor_abertura: valorAbertura })
+    .select('*')
+    .single();
+  if (error) throw error;
+  return rowToCaixa(data as CaixaRow);
 }
 
 export async function fecharCaixa(caixaId: string, valorFechamento: number): Promise<void> {
-  const caixa = store.caixas.find((c) => c.id === caixaId);
-  if (!caixa) return;
-  caixa.status = 'fechado';
-  caixa.valorFechamento = valorFechamento;
-  caixa.fechadoEm = new Date().toISOString();
+  const { error } = await supabase
+    .from('caixas')
+    .update({
+      status: 'fechado',
+      valor_fechamento: valorFechamento,
+      fechado_em: new Date().toISOString(),
+    })
+    .eq('id', caixaId);
+  if (error) throw error;
 }

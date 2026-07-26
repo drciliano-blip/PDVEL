@@ -9,12 +9,17 @@ export async function createProdutoAction(formData: FormData): Promise<void> {
   const nome = String(formData.get('nome') ?? '').trim();
   const categoria = String(formData.get('categoria') ?? '').trim();
   const preco = Number(formData.get('preco'));
+  const estoqueRaw = String(formData.get('estoque') ?? '').trim();
+  const estoque = estoqueRaw ? Number(estoqueRaw) : null;
 
   if (!nome || !categoria || !Number.isFinite(preco) || preco <= 0) {
     throw new Error('Preencha nome, categoria e um preço válido.');
   }
+  if (estoque !== null && (!Number.isFinite(estoque) || estoque < 0)) {
+    throw new Error('Estoque, se informado, precisa ser um número válido.');
+  }
 
-  await createProduto({ clienteId, nome, categoria, preco, ativo: true });
+  await createProduto({ clienteId, nome, categoria, preco, ativo: true, estoque });
   revalidatePath('/produtos');
 }
 

@@ -1,12 +1,25 @@
 import Link from 'next/link';
 import { listEventosByCliente } from '@/lib/data/eventos';
 import { getCaixaAbertoPorEvento, listCaixasPorEvento } from '@/lib/data/caixas';
+import { listVendasPorCaixa } from '@/lib/data/vendas';
 import { getClienteAtivoId } from '@/lib/session';
-import { abrirCaixaAction, fecharCaixaAction } from './actions';
+import { abrirCaixaAction, fecharCaixaAction, cancelarVendaAction } from './actions';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
+
+const STATUS_TONE = {
+  pago: 'success',
+  pendente: 'warning',
+  cancelado: 'danger',
+} as const;
+
+const STATUS_LABEL = {
+  pago: 'Pago',
+  pendente: 'Pendente',
+  cancelado: 'Cancelado',
+} as const;
 
 interface CaixaPageProps {
   searchParams: Promise<{ evento?: string }>;
@@ -24,6 +37,8 @@ export default async function CaixaPage({ searchParams }: CaixaPageProps) {
   const eventoAtivo = eventos.find((e) => e.id === eventoParam) ?? eventos[0];
   const caixaAberto = await getCaixaAbertoPorEvento(eventoAtivo.id);
   const historico = await listCaixasPorEvento(eventoAtivo.id);
+  const caixaAtual = caixaAberto ?? historico[0] ?? null;
+  const vendasDoCaixa = caixaAtual ? await listVendasPorCaixa(caixaAtual.id) : [];
 
   return (
     <div className="flex flex-col gap-8">
@@ -109,6 +124,49 @@ export default async function CaixaPage({ searchParams }: CaixaPageProps) {
               </div>
             ))}
           </Card>
+        </div>
+      )}
+
+      {caixaAtual && (
+        <div>
+          <h2 className="text-sm font-semibold text-muted uppercase tracking-wide mb-2">
+            Vendas deste caixa
+          </h2>
+          {vendasDoCaixa.length === 0 ? (
+            <p className="text-sm text-muted">Nenhuma venda registrada ainda.</p>
+          ) : (
+            <Card padding={false} className="divide-y divide-border">
+              {vendasDoCaixa.map((venda) => (
+                <div
+                  key={venda.id}
+                  className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 text-sm"
+                >
+                  <span className="text-muted">
+                    {new Date(venda.criadoEm).toLocaleTimeString('pt-BR')}
+                  </span>
+                  <span className="font-medium">R$ {venda.total.toFixed(2)}</span>
+                  <span className="text-muted">
+                    {venda.formaPagamento === 'pix' ? 'PIX' : 'Dinheiro'}
+                  </span>
+                  <Badge tone={STATUS_TONE[venda.statusPagamento]}>
+                    {STATUS_LABEL[venda.statusPagamento]}
+                  </Badge>
+                  <div className="flex items-center gap-2">
+                    <Link href={`/venda/${venda.id}/recibo`} className="text-xs text-accent underline">
+                      Recibo
+                    </Link>
+                    {venda.statusPagamento !== 'cancelado' && (
+                      <form action={cancelarVendaAction.bind(null, venda.id, caixaAtual.operador)}>
+                        <Button type="submit" variant="danger" size="sm">
+                          Cancelar
+                        </Button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </Card>
+          )}
         </div>
       )}
     </div>

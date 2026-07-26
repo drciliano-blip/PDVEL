@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getVenda, listItensPorVenda } from '@/lib/data/vendas';
 import { getClienteAtivoId } from '@/lib/session';
 import { PixQrCode } from '@/components/PixQrCode';
-import { ConfirmarPagamentoButton } from '@/components/ConfirmarPagamentoButton';
+import { PixStatusPoller } from '@/components/PixStatusPoller';
 
 interface PixPageProps {
   params: Promise<{ id: string }>;
@@ -14,7 +14,7 @@ export default async function PixPage({ params }: PixPageProps) {
   const clienteId = await getClienteAtivoId();
   const venda = await getVenda(id);
 
-  if (!venda || venda.clienteId !== clienteId || !venda.pixPayloadFake) {
+  if (!venda || venda.clienteId !== clienteId || !venda.pixQrCodeBase64 || !venda.pixPayload) {
     notFound();
   }
 
@@ -40,17 +40,22 @@ export default async function PixPage({ params }: PixPageProps) {
       </div>
 
       {venda.statusPagamento === 'pago' ? (
-        <div className="rounded-lg border border-success/30 bg-success-bg px-6 py-4 w-full">
+        <div className="rounded-lg border border-success/30 bg-success-bg px-6 py-4 w-full flex flex-col gap-2">
           <p className="text-success font-medium">✓ Pago</p>
-          <p className="text-xs text-muted mt-1">
+          <p className="text-xs text-muted">
             Confirmado em {venda.pagoEm && new Date(venda.pagoEm).toLocaleString('pt-BR')}
           </p>
+          <Link href={`/venda/${venda.id}/recibo`} className="text-sm text-accent underline">
+            Ver recibo
+          </Link>
         </div>
       ) : (
         <>
-          <PixQrCode payload={venda.pixPayloadFake} />
-          <p className="text-sm text-muted">QR fictício — aguardando confirmação de pagamento.</p>
-          <ConfirmarPagamentoButton vendaId={venda.id} />
+          <PixQrCode qrCodeBase64={venda.pixQrCodeBase64} payload={venda.pixPayload} />
+          <p className="text-sm text-muted">
+            Aguardando confirmação do pagamento — a tela atualiza sozinha.
+          </p>
+          <PixStatusPoller />
         </>
       )}
 

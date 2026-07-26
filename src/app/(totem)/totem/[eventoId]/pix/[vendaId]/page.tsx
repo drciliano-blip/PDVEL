@@ -2,8 +2,9 @@ import { notFound } from 'next/navigation';
 import { getVenda, listItensPorVenda } from '@/lib/data/vendas';
 import { getEvento } from '@/lib/data/eventos';
 import { PixQrCode } from '@/components/PixQrCode';
-import { ConfirmarPagamentoButton } from '@/components/ConfirmarPagamentoButton';
+import { PixStatusPoller } from '@/components/PixStatusPoller';
 import { TotemAutoReset } from '@/components/TotemAutoReset';
+import { PrintButton } from '@/components/PrintButton';
 
 interface TotemPixPageProps {
   params: Promise<{ eventoId: string; vendaId: string }>;
@@ -14,7 +15,7 @@ export default async function TotemPixPage({ params }: TotemPixPageProps) {
   const evento = await getEvento(eventoId);
   const venda = await getVenda(vendaId);
 
-  if (!evento || !venda || venda.eventoId !== evento.id || !venda.pixPayloadFake) {
+  if (!evento || !venda || venda.eventoId !== evento.id || !venda.pixQrCodeBase64 || !venda.pixPayload) {
     notFound();
   }
 
@@ -44,13 +45,14 @@ export default async function TotemPixPage({ params }: TotemPixPageProps) {
           <div className="rounded-xl border border-success/30 bg-success-bg px-6 py-6 w-full">
             <p className="text-success text-2xl font-medium">✓ Pago — obrigado!</p>
           </div>
+          <PrintButton label="Imprimir comprovante" />
           <TotemAutoReset eventoId={evento.id} />
         </>
       ) : (
         <>
-          <PixQrCode payload={venda.pixPayloadFake} />
+          <PixQrCode qrCodeBase64={venda.pixQrCodeBase64} payload={venda.pixPayload} />
           <p className="text-muted">Escaneie para pagar. A tela atualiza sozinha ao confirmar.</p>
-          <ConfirmarPagamentoButton vendaId={venda.id} />
+          <PixStatusPoller />
         </>
       )}
     </div>

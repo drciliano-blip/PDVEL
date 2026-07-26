@@ -47,10 +47,11 @@ export function TotemCheckout({ produtos, eventoId, caixaId, clienteId }: TotemC
 
   const total = itensCarrinho.reduce((sum, i) => sum + i.precoUnit * i.quantidade, 0);
 
-  function alterarQuantidade(produtoId: string, delta: number) {
+  function alterarQuantidade(produto: Produto, delta: number) {
     setQuantidades((atual) => {
-      const nova = Math.max(0, (atual[produtoId] ?? 0) + delta);
-      return { ...atual, [produtoId]: nova };
+      const limite = produto.estoque ?? Infinity;
+      const nova = Math.min(limite, Math.max(0, (atual[produto.id] ?? 0) + delta));
+      return { ...atual, [produto.id]: nova };
     });
   }
 
@@ -88,34 +89,43 @@ export function TotemCheckout({ produtos, eventoId, caixaId, clienteId }: TotemC
               {categoria}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {itens.map((produto) => (
-                <div
-                  key={produto.id}
-                  className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3"
-                >
-                  <div>
-                    <p>{produto.nome}</p>
-                    <p className="text-base text-muted">R$ {produto.preco.toFixed(2)}</p>
+              {itens.map((produto) => {
+                const esgotado = produto.estoque === 0;
+                const noLimite =
+                  produto.estoque !== null && (quantidades[produto.id] ?? 0) >= produto.estoque;
+                return (
+                  <div
+                    key={produto.id}
+                    className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3"
+                  >
+                    <div>
+                      <p>{produto.nome}</p>
+                      <p className="text-base text-muted">
+                        R$ {produto.preco.toFixed(2)}
+                        {esgotado && <span className="text-danger"> · Esgotado</span>}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => alterarQuantidade(produto, -1)}
+                        className="w-14 h-14 rounded-xl border border-border text-2xl hover:bg-surface-muted"
+                      >
+                        −
+                      </button>
+                      <span className="w-6 text-center">{quantidades[produto.id] ?? 0}</span>
+                      <button
+                        type="button"
+                        onClick={() => alterarQuantidade(produto, 1)}
+                        disabled={esgotado || noLimite}
+                        className="w-14 h-14 rounded-xl border border-border text-2xl hover:bg-surface-muted disabled:opacity-30 disabled:pointer-events-none"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => alterarQuantidade(produto.id, -1)}
-                      className="w-14 h-14 rounded-xl border border-border text-2xl hover:bg-surface-muted"
-                    >
-                      −
-                    </button>
-                    <span className="w-6 text-center">{quantidades[produto.id] ?? 0}</span>
-                    <button
-                      type="button"
-                      onClick={() => alterarQuantidade(produto.id, 1)}
-                      className="w-14 h-14 rounded-xl border border-border text-2xl hover:bg-surface-muted"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ))}

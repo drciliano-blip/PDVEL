@@ -2,10 +2,15 @@ export type FormaPagamento = 'pix' | 'dinheiro';
 export type StatusPagamento = 'pendente' | 'pago' | 'cancelado';
 export type StatusCaixa = 'aberto' | 'fechado';
 
+export type StatusOnboardingAsaas = 'nao_iniciado' | 'aguardando_documentos' | 'em_analise' | 'aprovado';
+
 export interface Cliente {
   id: string;
   nome: string;
   comissaoPercentual: number;
+  asaasSubcontaId: string | null;
+  asaasWalletId: string | null;
+  asaasStatusOnboarding: StatusOnboardingAsaas;
 }
 
 export interface Evento {
@@ -22,6 +27,7 @@ export interface Produto {
   categoria: string;
   preco: number;
   ativo: boolean;
+  estoque: number | null;
 }
 
 export interface Caixa {
@@ -54,9 +60,13 @@ export interface Venda {
   total: number;
   formaPagamento: FormaPagamento;
   statusPagamento: StatusPagamento;
-  pixPayloadFake: string | null;
+  asaasPaymentId: string | null;
+  pixPayload: string | null;
+  pixQrCodeBase64: string | null;
   criadoEm: string;
   pagoEm: string | null;
+  canceladoEm: string | null;
+  canceladoPor: string | null;
 }
 
 export interface Convidado {

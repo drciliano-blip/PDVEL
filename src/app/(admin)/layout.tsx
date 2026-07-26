@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 const NAV_ITEMS = [
+  { href: "/clientes", label: "Clientes" },
   { href: "/produtos", label: "Produtos" },
   { href: "/caixa", label: "Caixa" },
   { href: "/venda", label: "Venda" },
@@ -32,7 +33,7 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <header className="border-b border-border px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <header className="print:hidden border-b border-border px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center justify-between sm:justify-start gap-6">
             <span className="font-semibold text-lg">PDV de Eventos</span>
             <div className="sm:hidden">
@@ -54,8 +55,8 @@ export default async function RootLayout({
             <ClienteSelector clientes={clientes} ativoId={ativoId} />
           </div>
         </header>
-        <main className="flex-1 px-4 sm:px-6 py-6 sm:py-8 max-w-5xl w-full mx-auto">{children}</main>
-        <footer className="border-t border-border px-4 sm:px-6 py-4 text-xs text-muted flex justify-between">
+        <main className="flex-1 px-4 sm:px-6 py-6 sm:py-8 max-w-5xl w-full mx-auto print:p-0 print:max-w-none">{children}</main>
+        <footer className="print:hidden border-t border-border px-4 sm:px-6 py-4 text-xs text-muted flex justify-between">
           <span>PDV de Eventos — protótipo</span>
           <Link href="/privacidade" className="underline hover:text-foreground">
             Política de Privacidade

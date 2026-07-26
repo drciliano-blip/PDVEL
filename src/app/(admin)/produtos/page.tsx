@@ -37,6 +37,10 @@ export default async function ProdutosPage() {
             <label className="text-xs text-muted">Preço (R$)</label>
             <Input name="preco" type="number" step="0.01" min="0.01" required className="w-28" />
           </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs text-muted">Estoque (vazio = ilimitado)</label>
+            <Input name="estoque" type="number" step="1" min="0" className="w-36" />
+          </div>
           <Button type="submit">Adicionar produto</Button>
         </form>
       </Card>
@@ -56,12 +60,17 @@ export default async function ProdutosPage() {
                     key={produto.id}
                     className="flex flex-wrap items-center justify-between gap-3 px-4 py-3"
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 flex-wrap">
                       <span className="text-sm font-medium">{produto.nome}</span>
                       <span className="text-sm text-muted">R$ {produto.preco.toFixed(2)}</span>
                       <Badge tone={produto.ativo ? 'success' : 'neutral'}>
                         {produto.ativo ? 'Ativo' : 'Inativo'}
                       </Badge>
+                      {produto.estoque !== null && (
+                        <Badge tone={produto.estoque === 0 ? 'danger' : produto.estoque <= 5 ? 'warning' : 'neutral'}>
+                          Estoque: {produto.estoque}
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <form action={toggleProdutoAtivoAction.bind(null, produto.id)}>
