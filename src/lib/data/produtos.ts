@@ -9,6 +9,7 @@ interface ProdutoRow {
   preco: number;
   ativo: boolean;
   estoque: number | null;
+  alcoolico: boolean;
 }
 
 function rowToProduto(row: ProdutoRow): Produto {
@@ -20,6 +21,7 @@ function rowToProduto(row: ProdutoRow): Produto {
     preco: row.preco,
     ativo: row.ativo,
     estoque: row.estoque,
+    alcoolico: row.alcoolico,
   };
 }
 
@@ -61,6 +63,7 @@ export async function createProduto(input: Omit<Produto, 'id'>): Promise<Produto
       preco: input.preco,
       ativo: input.ativo,
       estoque: input.estoque,
+      alcoolico: input.alcoolico,
     })
     .select('*')
     .single();

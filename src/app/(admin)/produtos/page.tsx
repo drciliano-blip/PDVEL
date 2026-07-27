@@ -44,6 +44,10 @@ export default async function ProdutosPage() {
             <label className="text-xs text-muted">Estoque (vazio = ilimitado)</label>
             <Input name="estoque" type="number" step="1" min="0" className="w-36" />
           </div>
+          <label className="flex items-center gap-2 text-sm text-muted pb-2.5">
+            <input type="checkbox" name="alcoolico" className="w-4 h-4" />
+            Bebida alcoólica
+          </label>
           <Button type="submit">Adicionar produto</Button>
         </form>
       </Card>
@@ -74,6 +78,7 @@ export default async function ProdutosPage() {
                           Estoque: {produto.estoque}
                         </Badge>
                       )}
+                      {produto.alcoolico && <Badge tone="warning">🔞 Alcoólico</Badge>}
                     </div>
                     <div className="flex items-center gap-2">
                       <form action={toggleProdutoAtivoAction.bind(null, produto.id)}>

@@ -5,6 +5,7 @@ interface ItemVendaBasico {
   produtoId: string;
   nome: string;
   quantidade: number;
+  alcoolico: boolean;
 }
 
 interface FichaRow {
@@ -15,6 +16,7 @@ interface FichaRow {
   nome_produto: string;
   codigo: string;
   status: StatusFicha;
+  produto_alcoolico: boolean;
   emitida_em: string;
   resgatada_em: string | null;
   resgatada_por: string | null;
@@ -29,6 +31,7 @@ function rowToFicha(row: FichaRow): Ficha {
     nomeProduto: row.nome_produto,
     codigo: row.codigo,
     status: row.status,
+    produtoAlcoolico: row.produto_alcoolico,
     emitidaEm: row.emitida_em,
     resgatadaEm: row.resgatada_em,
     resgatadaPor: row.resgatada_por,
@@ -49,12 +52,25 @@ function gerarCodigo(): string {
 export async function gerarFichasParaVenda(vendaId: string, clienteId: string): Promise<Ficha[]> {
   const { data: itensData, error: itensError } = await supabase
     .from('venda_itens')
-    .select('produto_id, nome, quantidade')
+    .select('produto_id, nome, quantidade, produtos(alcoolico)')
     .eq('venda_id', vendaId);
   if (itensError) throw itensError;
-  const itens = (itensData as { produto_id: string; nome: string; quantidade: number }[]).map(
-    (row): ItemVendaBasico => ({ produtoId: row.produto_id, nome: row.nome, quantidade: row.quantidade })
-  );
+  const itens = (
+    itensData as {
+      produto_id: string;
+      nome: string;
+      quantidade: number;
+      produtos: { alcoolico: boolean } | { alcoolico: boolean }[] | null;
+    }[]
+  ).map((row): ItemVendaBasico => {
+    const produto = Array.isArray(row.produtos) ? row.produtos[0] : row.produtos;
+    return {
+      produtoId: row.produto_id,
+      nome: row.nome,
+      quantidade: row.quantidade,
+      alcoolico: produto?.alcoolico ?? false,
+    };
+  });
 
   const fichas: Ficha[] = [];
 
@@ -71,6 +87,7 @@ export async function gerarFichasParaVenda(vendaId: string, clienteId: string): 
             nome_produto: item.nome,
             codigo: gerarCodigo(),
             status: 'emitida',
+            produto_alcoolico: item.alcoolico,
           })
           .select('*')
           .single();

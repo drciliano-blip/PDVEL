@@ -102,6 +102,12 @@ export function ResgatarFichaForm({ operadorPadrao }: { operadorPadrao: string }
             </Badge>
           </div>
 
+          {ficha.produtoAlcoolico && ficha.status === 'emitida' && (
+            <p className="text-sm text-warning font-medium">
+              🔞 Confira documento — bebida alcoólica
+            </p>
+          )}
+
           {ficha.status === 'emitida' && !confirmado && (
             <>
               <div className="flex flex-col gap-1">

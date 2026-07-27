@@ -67,6 +67,9 @@ export function VendaForm({ produtos, eventoId, caixaId, clienteId }: VendaFormP
           convidadoId: convidado?.id ?? null,
           itens: itensCarrinho,
           formaPagamento,
+          // Venda operada por um funcionário presente — a verificação de
+          // idade acontece por ele, não precisa de checkbox redundante aqui.
+          confirmacaoMaioridade: true,
         });
         setQuantidades({});
         setCarrinhoAberto(false);

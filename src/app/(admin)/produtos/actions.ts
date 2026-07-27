@@ -12,6 +12,7 @@ export async function createProdutoAction(formData: FormData): Promise<void> {
   const preco = Number(formData.get('preco'));
   const estoqueRaw = String(formData.get('estoque') ?? '').trim();
   const estoque = estoqueRaw ? Number(estoqueRaw) : null;
+  const alcoolico = formData.get('alcoolico') === 'on';
 
   if (!nome || !categoria || !Number.isFinite(preco) || preco <= 0) {
     throw new Error('Preencha nome, categoria e um preço válido.');
@@ -20,7 +21,7 @@ export async function createProdutoAction(formData: FormData): Promise<void> {
     throw new Error('Estoque, se informado, precisa ser um número válido.');
   }
 
-  await createProduto({ clienteId, nome, categoria, preco, ativo: true, estoque });
+  await createProduto({ clienteId, nome, categoria, preco, ativo: true, estoque, alcoolico });
   revalidatePath('/produtos');
 }
 

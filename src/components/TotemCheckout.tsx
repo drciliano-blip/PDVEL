@@ -13,13 +13,22 @@ interface TotemCheckoutProps {
   eventoId: string;
   caixaId: string;
   clienteId: string;
+  /** Pra onde redirecionar após criar a venda — difere entre totem físico e carteira pessoal. */
+  pixBasePath?: string;
 }
 
-export function TotemCheckout({ produtos, eventoId, caixaId, clienteId }: TotemCheckoutProps) {
+export function TotemCheckout({
+  produtos,
+  eventoId,
+  caixaId,
+  clienteId,
+  pixBasePath = '/totem',
+}: TotemCheckoutProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [quantidades, setQuantidades] = useState<Record<string, number>>({});
   const [convidado, setConvidado] = useState<Convidado | null>(null);
+  const [confirmaMaioridade, setConfirmaMaioridade] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
   const porCategoria = useMemo(() => {
@@ -41,11 +50,13 @@ export function TotemCheckout({ produtos, eventoId, caixaId, clienteId }: TotemC
           nome: p.nome,
           precoUnit: p.preco,
           quantidade: quantidades[p.id],
+          alcoolico: p.alcoolico,
         })),
     [produtos, quantidades]
   );
 
   const total = itensCarrinho.reduce((sum, i) => sum + i.precoUnit * i.quantidade, 0);
+  const temAlcoolico = itensCarrinho.some((item) => item.alcoolico);
 
   function alterarQuantidade(produto: Produto, delta: number) {
     setQuantidades((atual) => {
@@ -57,6 +68,10 @@ export function TotemCheckout({ produtos, eventoId, caixaId, clienteId }: TotemC
 
   function pagarComPix() {
     setErro(null);
+    if (temAlcoolico && !confirmaMaioridade) {
+      setErro('Confirme que o comprador é maior de idade antes de pagar.');
+      return;
+    }
     startTransition(async () => {
       try {
         const venda = await criarVendaAction({
@@ -66,8 +81,9 @@ export function TotemCheckout({ produtos, eventoId, caixaId, clienteId }: TotemC
           convidadoId: convidado?.id ?? null,
           itens: itensCarrinho,
           formaPagamento: 'pix',
+          confirmacaoMaioridade: confirmaMaioridade,
         });
-        router.push(`/totem/${eventoId}/pix/${venda.id}`);
+        router.push(`${pixBasePath}/${eventoId}/pix/${venda.id}`);
       } catch (e) {
         setErro(e instanceof Error ? e.message : 'Erro ao registrar o pedido.');
       }
@@ -99,7 +115,10 @@ export function TotemCheckout({ produtos, eventoId, caixaId, clienteId }: TotemC
                     className="flex items-center justify-between rounded-xl border border-border bg-surface px-4 py-3"
                   >
                     <div>
-                      <p>{produto.nome}</p>
+                      <p>
+                        {produto.nome}
+                        {produto.alcoolico && <span className="text-warning"> 🔞</span>}
+                      </p>
                       <p className="text-base text-muted">
                         R$ {produto.preco.toFixed(2)}
                         {esgotado && <span className="text-danger"> · Esgotado</span>}
@@ -151,6 +170,18 @@ export function TotemCheckout({ produtos, eventoId, caixaId, clienteId }: TotemC
           <span>Total</span>
           <span>R$ {total.toFixed(2)}</span>
         </div>
+
+        {temAlcoolico && (
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={confirmaMaioridade}
+              onChange={(e) => setConfirmaMaioridade(e.target.checked)}
+              className="mt-1 w-5 h-5"
+            />
+            <span>Confirmo que sou maior de 18 anos (pedido tem bebida alcoólica).</span>
+          </label>
+        )}
 
         {erro && <p className="text-base text-danger">{erro}</p>}
 

@@ -11,6 +11,7 @@ export async function criarVendaAction(params: {
   convidadoId?: string | null;
   itens: ItemCarrinho[];
   formaPagamento: FormaPagamento;
+  confirmacaoMaioridade?: boolean;
 }) {
   if (params.itens.length === 0) {
     throw new Error('O carrinho está vazio.');

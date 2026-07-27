@@ -41,6 +41,7 @@ export interface Produto {
   preco: number;
   ativo: boolean;
   estoque: number | null;
+  alcoolico: boolean;
 }
 
 export interface Caixa {
@@ -80,6 +81,7 @@ export interface Venda {
   pagoEm: string | null;
   canceladoEm: string | null;
   canceladoPor: string | null;
+  confirmacaoMaioridadeEm: string | null;
 }
 
 export interface Convidado {
@@ -116,6 +118,7 @@ export interface Ficha {
   nomeProduto: string;
   codigo: string;
   status: StatusFicha;
+  produtoAlcoolico: boolean;
   emitidaEm: string;
   resgatadaEm: string | null;
   resgatadaPor: string | null;

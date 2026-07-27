@@ -38,6 +38,7 @@ create table produtos (
   preco numeric not null,
   ativo boolean not null default true,
   estoque integer,
+  alcoolico boolean not null default false,
   criado_em timestamptz not null default now()
 );
 create index produtos_cliente_id_idx on produtos (cliente_id);
@@ -84,7 +85,8 @@ create table vendas (
   criado_em timestamptz not null default now(),
   pago_em timestamptz,
   cancelado_em timestamptz,
-  cancelado_por text
+  cancelado_por text,
+  confirmacao_maioridade_em timestamptz
 );
 create index vendas_caixa_id_idx on vendas (caixa_id);
 create index vendas_cliente_id_idx on vendas (cliente_id);
@@ -109,6 +111,7 @@ create table fichas (
   nome_produto text not null,
   codigo text not null unique,
   status text not null check (status in ('emitida', 'resgatada', 'cancelada')),
+  produto_alcoolico boolean not null default false,
   emitida_em timestamptz not null default now(),
   resgatada_em timestamptz,
   resgatada_por text

@@ -31,6 +31,7 @@ interface VendaRow {
   pago_em: string | null;
   cancelado_em: string | null;
   cancelado_por: string | null;
+  confirmacao_maioridade_em: string | null;
 }
 
 interface VendaItemRow {
@@ -60,6 +61,7 @@ function rowToVenda(row: VendaRow): Venda {
     pagoEm: row.pago_em,
     canceladoEm: row.cancelado_em,
     canceladoPor: row.cancelado_por,
+    confirmacaoMaioridadeEm: row.confirmacao_maioridade_em,
   };
 }
 
@@ -82,12 +84,21 @@ export async function criarVenda(params: {
   convidadoId?: string | null;
   itens: ItemCarrinho[];
   formaPagamento: FormaPagamento;
+  confirmacaoMaioridade?: boolean;
 }): Promise<Venda> {
+  let temAlcoolico = false;
   for (const item of params.itens) {
     const produto = await getProduto(item.produtoId);
     if (produto && produto.estoque !== null && produto.estoque < item.quantidade) {
       throw new Error(`Estoque insuficiente de "${produto.nome}" (disponível: ${produto.estoque}).`);
     }
+    if (produto?.alcoolico) temAlcoolico = true;
+  }
+
+  if (temAlcoolico && !params.confirmacaoMaioridade) {
+    throw new Error(
+      'O carrinho tem item alcoólico — confirme que o comprador é maior de idade antes de finalizar.'
+    );
   }
 
   const total = params.itens.reduce((sum, i) => sum + i.precoUnit * i.quantidade, 0);
@@ -150,6 +161,7 @@ export async function criarVenda(params: {
       pix_payload: pixPayload,
       pix_qr_code_base64: pixQrCodeBase64,
       pago_em: pagoEm,
+      confirmacao_maioridade_em: temAlcoolico ? new Date().toISOString() : null,
     })
     .select('*')
     .single();
