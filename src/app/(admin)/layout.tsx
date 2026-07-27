@@ -11,7 +11,7 @@ import { OnlineStatusIndicator } from "@/components/OnlineStatusIndicator";
 export const metadata: Metadata = {
   title: "PDV de Eventos",
   description: "Protótipo de PDV multi-tenant para consumo em eventos",
-  manifest: "/manifest.webmanifest",
+  manifest: "/admin-manifest.webmanifest",
 };
 
 const NAV_ITEMS = [
