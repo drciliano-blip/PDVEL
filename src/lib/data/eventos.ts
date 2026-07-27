@@ -75,11 +75,34 @@ export async function toggleFichasHabilitadas(eventoId: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function listTodosEventosComDetalhes(): Promise<EventoComDetalhes[]> {
+export async function getEventoComDetalhes(id: string): Promise<EventoComDetalhes | undefined> {
   const { data, error } = await supabase
     .from('eventos')
     .select('*, clientes(nome), espacos(nome), caixas(status)')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return undefined;
+  const row = data as EventoDetalheRow;
+  return {
+    ...rowToEvento(row),
+    clienteNome: row.clientes?.nome ?? 'Desconhecido',
+    espacoNome: row.espacos?.nome ?? null,
+    statusCaixa: row.caixas.some((c) => c.status === 'aberto')
+      ? 'aberto'
+      : row.caixas.length > 0
+        ? 'fechado'
+        : null,
+  };
+}
+
+export async function listTodosEventosComDetalhes(clienteId?: string): Promise<EventoComDetalhes[]> {
+  let query = supabase
+    .from('eventos')
+    .select('*, clientes(nome), espacos(nome), caixas(status)')
     .order('data', { ascending: false });
+  if (clienteId) query = query.eq('cliente_id', clienteId);
+  const { data, error } = await query;
   if (error) throw error;
 
   return (data as EventoDetalheRow[]).map((row) => ({

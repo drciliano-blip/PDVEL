@@ -6,7 +6,7 @@ import { getClienteAtivoId } from '@/lib/session';
 
 export async function createProdutoAction(formData: FormData): Promise<void> {
   const clienteId = await getClienteAtivoId();
-  if (!clienteId) throw new Error('Nenhuma empresa-cliente cadastrada ainda.');
+  if (!clienteId) throw new Error('Nenhum produtor ativo.');
   const nome = String(formData.get('nome') ?? '').trim();
   const categoria = String(formData.get('categoria') ?? '').trim();
   const preco = Number(formData.get('preco'));
@@ -22,15 +22,15 @@ export async function createProdutoAction(formData: FormData): Promise<void> {
   }
 
   await createProduto({ clienteId, nome, categoria, preco, ativo: true, estoque, alcoolico });
-  revalidatePath('/produtos');
+  revalidatePath('/eventos/[eventoId]/cardapio', 'page');
 }
 
 export async function toggleProdutoAtivoAction(id: string): Promise<void> {
   await toggleProdutoAtivo(id);
-  revalidatePath('/produtos');
+  revalidatePath('/eventos/[eventoId]/cardapio', 'page');
 }
 
 export async function deleteProdutoAction(id: string): Promise<void> {
   await deleteProduto(id);
-  revalidatePath('/produtos');
+  revalidatePath('/eventos/[eventoId]/cardapio', 'page');
 }

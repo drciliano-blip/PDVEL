@@ -1,6 +1,6 @@
 // Marco 1 do caixa offline-first: instalabilidade PWA + fallback offline
 // somente-leitura para as duas telas que o operador usa ao vivo no evento
-// (/caixa e /venda). Sem Serwist/Workbox — o dev server deste projeto roda
+// (abas Caixa e Venda do hub, /eventos/{id}/caixa|venda). Sem Serwist/Workbox — o dev server deste projeto roda
 // em Turbopack e o Serwist hoje exige configuração webpack, então este SW
 // é escrito à mão para não introduzir esse risco de compatibilidade.
 //
@@ -11,9 +11,10 @@ const SHELL_CACHE = 'pdv-admin-shell-v1';
 const RUNTIME_CACHE = 'pdv-admin-runtime-v1';
 const CACHE_ALLOWLIST = [SHELL_CACHE, RUNTIME_CACHE];
 
-// Pathname exato, não prefixo: /venda/[id]/pix e /venda/[id]/recibo são
-// telas de status de pagamento e devem sempre ir para a rede.
-const OFFLINE_FALLBACK_PATHS = new Set(['/caixa', '/venda']);
+// Só as abas Caixa/Venda do hub do evento (/eventos/{id}/caixa|venda) —
+// não um prefixo genérico: /venda/[id]/pix e /venda/[id]/recibo são telas
+// de status de pagamento e devem sempre ir para a rede.
+const OFFLINE_FALLBACK_PATTERN = /^\/eventos\/[^/]+\/(caixa|venda)$/;
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -40,7 +41,7 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin || isBypassed(url)) return;
 
-  if (request.mode === 'navigate' && OFFLINE_FALLBACK_PATHS.has(url.pathname)) {
+  if (request.mode === 'navigate' && OFFLINE_FALLBACK_PATTERN.test(url.pathname)) {
     event.respondWith(networkFirstNavigation(event, request));
     return;
   }

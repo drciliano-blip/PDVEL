@@ -3,6 +3,7 @@
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { setClienteAtivoAction } from '@/app/(admin)/actions/cliente-ativo';
+import { setEventoAtivoAction } from '@/app/(admin)/actions/evento-ativo';
 import { Button } from '@/components/ui/Button';
 
 export function EntrarEventoButton({ eventoId, clienteId }: { eventoId: string; clienteId: string }) {
@@ -18,7 +19,8 @@ export function EntrarEventoButton({ eventoId, clienteId }: { eventoId: string; 
       onClick={() =>
         startTransition(async () => {
           await setClienteAtivoAction(clienteId);
-          router.push(`/caixa?evento=${eventoId}`);
+          await setEventoAtivoAction(eventoId);
+          router.push(`/eventos/${eventoId}`);
         })
       }
     >

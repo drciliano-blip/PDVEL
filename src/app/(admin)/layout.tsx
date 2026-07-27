@@ -9,22 +9,13 @@ import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
 import { OnlineStatusIndicator } from "@/components/OnlineStatusIndicator";
 import { ThemeScript } from "@/components/ThemeScript";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { GerenciarMenu } from "@/components/GerenciarMenu";
 
 export const metadata: Metadata = {
   title: "PDV de Eventos",
   description: "Protótipo de PDV multi-tenant para consumo em eventos",
   manifest: "/admin-manifest.webmanifest",
 };
-
-const NAV_ITEMS = [
-  { href: "/espacos", label: "Espaços" },
-  { href: "/clientes", label: "Clientes" },
-  { href: "/produtos", label: "Produtos" },
-  { href: "/caixa", label: "Caixa" },
-  { href: "/venda", label: "Venda" },
-  { href: "/fichas/resgatar", label: "Resgatar ficha" },
-  { href: "/relatorios", label: "Relatórios" },
-];
 
 export default async function RootLayout({
   children,
@@ -54,21 +45,11 @@ export default async function RootLayout({
               <ClienteSelector clientes={clientes} ativoId={ativoId} />
             </div>
           </div>
-          <nav className="flex gap-1 overflow-x-auto text-sm">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="rounded-lg px-3 py-2 text-muted hover:bg-surface-muted hover:text-foreground whitespace-nowrap"
-              >
-                {item.label}
-              </Link>
-            ))}
-          </nav>
           <div className="flex items-center gap-3">
             <div className="hidden sm:block">
               <ClienteSelector clientes={clientes} ativoId={ativoId} />
             </div>
+            <GerenciarMenu />
             <ThemeToggle />
           </div>
         </header>

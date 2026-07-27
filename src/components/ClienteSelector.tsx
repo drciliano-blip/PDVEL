@@ -19,7 +19,7 @@ export function ClienteSelector({ clientes, ativoId }: ClienteSelectorProps) {
 
   return (
     <label className="flex items-center gap-2 text-sm">
-      <span className="text-muted whitespace-nowrap">Cliente ativo</span>
+      <span className="text-muted whitespace-nowrap">Produtor</span>
       <select
         value={ativoId}
         disabled={isPending}

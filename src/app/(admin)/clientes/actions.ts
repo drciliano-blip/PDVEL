@@ -30,7 +30,7 @@ export async function createEventoAction(formData: FormData): Promise<void> {
 
   await createEvento({ clienteId, espacoId, nome, data, fichasHabilitadas });
   revalidatePath('/clientes');
-  revalidatePath('/eventos');
+  revalidatePath('/');
 }
 
 export async function toggleFichasHabilitadasAction(eventoId: string): Promise<void> {

@@ -11,7 +11,7 @@ export function GET() {
       name: 'PDV de Eventos — Operador',
       short_name: 'PDV Operador',
       description: 'Painel do operador: caixa, vendas e catálogo do PDV de Eventos.',
-      start_url: '/caixa',
+      start_url: '/',
       scope: '/',
       display: 'standalone',
       background_color: '#faf8f5',

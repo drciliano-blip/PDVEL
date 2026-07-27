@@ -82,6 +82,7 @@ export interface Venda {
   canceladoEm: string | null;
   canceladoPor: string | null;
   confirmacaoMaioridadeEm: string | null;
+  cortesia: boolean;
 }
 
 export interface Convidado {
@@ -122,4 +123,6 @@ export interface Ficha {
   emitidaEm: string;
   resgatadaEm: string | null;
   resgatadaPor: string | null;
+  canceladaPor: string | null;
+  motivoCancelamento: string | null;
 }

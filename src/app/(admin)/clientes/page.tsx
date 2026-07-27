@@ -1,22 +1,14 @@
 import { listClientes } from '@/lib/data/clientes';
 import { listEventosByCliente } from '@/lib/data/eventos';
-import { listEspacos } from '@/lib/data/espacos';
-import {
-  createClienteAction,
-  createEventoAction,
-  criarSubcontaAsaasAction,
-  toggleFichasHabilitadasAction,
-} from './actions';
+import { createClienteAction, criarSubcontaAsaasAction, toggleFichasHabilitadasAction } from './actions';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { EntrarEventoButton } from '@/components/EntrarEventoButton';
-import { ClientesSubNav } from '@/components/ClientesSubNav';
 
 export default async function ClientesPage() {
   const clientes = await listClientes();
-  const espacos = await listEspacos();
   const eventosPorCliente = await Promise.all(
     clientes.map(async (cliente) => ({
       cliente,
@@ -27,11 +19,9 @@ export default async function ClientesPage() {
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-2xl font-semibold">Clientes</h1>
+        <h1 className="text-2xl font-semibold">Produtores</h1>
         <p className="text-muted text-sm">Empresas que usam o PDV nos eventos delas.</p>
       </div>
-
-      <ClientesSubNav ativo="clientes" />
 
       <Card>
         <form action={createClienteAction} className="flex flex-wrap items-end gap-3">
@@ -43,7 +33,7 @@ export default async function ClientesPage() {
             <label className="text-xs text-muted">Comissão (%)</label>
             <Input name="comissaoPercentual" type="number" step="0.1" min="0" max="100" required className="w-28" />
           </div>
-          <Button type="submit">Adicionar cliente</Button>
+          <Button type="submit">Adicionar produtor</Button>
         </form>
       </Card>
 
@@ -88,40 +78,6 @@ export default async function ClientesPage() {
                 ))}
               </ul>
             )}
-
-            <form action={createEventoAction} className="flex flex-wrap items-end gap-3 border-t border-border pt-3">
-              <input type="hidden" name="clienteId" value={cliente.id} />
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-muted">Novo evento</label>
-                <Input name="nome" placeholder="Nome do evento" required className="w-48" />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-muted">Data</label>
-                <Input name="data" type="date" required />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs text-muted">Espaço</label>
-                <select
-                  name="espacoId"
-                  className="h-11 rounded-lg border border-border bg-surface px-3 text-sm"
-                  defaultValue=""
-                >
-                  <option value="">Sem espaço definido</option>
-                  {espacos.map((espaco) => (
-                    <option key={espaco.id} value={espaco.id}>
-                      {espaco.nome}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <label className="flex items-center gap-2 text-sm text-muted pb-2.5">
-                <input type="checkbox" name="fichasHabilitadas" className="w-4 h-4" />
-                Habilitar impressão de fichas
-              </label>
-              <Button type="submit" variant="secondary" size="sm">
-                Adicionar evento
-              </Button>
-            </form>
 
             {!cliente.asaasWalletId && (
               <details className="border-t border-border pt-3">

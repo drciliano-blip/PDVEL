@@ -25,12 +25,18 @@ interface VendaRow {
   criado_em: string;
 }
 
-export async function gerarRelatorioVendas(clienteId: string): Promise<RelatorioVendas> {
-  const { data: vendasData, error: vendasError } = await supabase
+export async function gerarRelatorioVendas(
+  clienteId: string,
+  eventoId?: string
+): Promise<RelatorioVendas> {
+  let query = supabase
     .from('vendas')
     .select('id, evento_id, caixa_id, forma_pagamento, total, criado_em')
     .eq('cliente_id', clienteId)
-    .eq('status_pagamento', 'pago');
+    .eq('status_pagamento', 'pago')
+    .eq('cortesia', false);
+  if (eventoId) query = query.eq('evento_id', eventoId);
+  const { data: vendasData, error: vendasError } = await query;
   if (vendasError) throw vendasError;
   const vendas = vendasData as VendaRow[];
 

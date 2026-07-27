@@ -86,7 +86,8 @@ create table vendas (
   pago_em timestamptz,
   cancelado_em timestamptz,
   cancelado_por text,
-  confirmacao_maioridade_em timestamptz
+  confirmacao_maioridade_em timestamptz,
+  cortesia boolean not null default false
 );
 create index vendas_caixa_id_idx on vendas (caixa_id);
 create index vendas_cliente_id_idx on vendas (cliente_id);
@@ -114,7 +115,9 @@ create table fichas (
   produto_alcoolico boolean not null default false,
   emitida_em timestamptz not null default now(),
   resgatada_em timestamptz,
-  resgatada_por text
+  resgatada_por text,
+  cancelada_por text,
+  motivo_cancelamento text
 );
 create index fichas_venda_id_idx on fichas (venda_id);
 create index fichas_cliente_id_idx on fichas (cliente_id);

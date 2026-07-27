@@ -21,8 +21,9 @@ export async function abrirCaixaAction(formData: FormData): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(CAIXA_ATIVO_COOKIE, caixa.id, { path: '/' });
 
-  revalidatePath('/caixa');
-  revalidatePath('/venda');
+  revalidatePath('/eventos/[eventoId]/caixa', 'page');
+  revalidatePath('/eventos/[eventoId]/venda', 'page');
+  revalidatePath('/eventos/[eventoId]', 'page');
 }
 
 export async function fecharCaixaComContagemAction(
@@ -52,8 +53,9 @@ export async function fecharCaixaComContagemAction(
     cookieStore.delete(CAIXA_ATIVO_COOKIE);
   }
 
-  revalidatePath('/caixa');
-  revalidatePath('/venda');
+  revalidatePath('/eventos/[eventoId]/caixa', 'page');
+  revalidatePath('/eventos/[eventoId]/venda', 'page');
+  revalidatePath('/eventos/[eventoId]', 'page');
 }
 
 export async function usarCaixaAction(caixaId: string): Promise<void> {
@@ -63,19 +65,20 @@ export async function usarCaixaAction(caixaId: string): Promise<void> {
   }
   const cookieStore = await cookies();
   cookieStore.set(CAIXA_ATIVO_COOKIE, caixaId, { path: '/' });
-  revalidatePath('/caixa');
-  revalidatePath('/venda');
+  revalidatePath('/eventos/[eventoId]/caixa', 'page');
+  revalidatePath('/eventos/[eventoId]/venda', 'page');
 }
 
 export async function soltarCaixaAction(): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.delete(CAIXA_ATIVO_COOKIE);
-  revalidatePath('/caixa');
-  revalidatePath('/venda');
+  revalidatePath('/eventos/[eventoId]/caixa', 'page');
+  revalidatePath('/eventos/[eventoId]/venda', 'page');
 }
 
 export async function cancelarVendaAction(vendaId: string, operador: string): Promise<void> {
   await cancelarVenda(vendaId, operador);
-  revalidatePath('/caixa');
+  revalidatePath('/eventos/[eventoId]/caixa', 'page');
   revalidatePath('/relatorios');
+  revalidatePath('/eventos/[eventoId]/relatorios', 'page');
 }

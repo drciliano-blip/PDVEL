@@ -32,6 +32,7 @@ interface VendaRow {
   cancelado_em: string | null;
   cancelado_por: string | null;
   confirmacao_maioridade_em: string | null;
+  cortesia: boolean;
 }
 
 interface VendaItemRow {
@@ -62,6 +63,7 @@ function rowToVenda(row: VendaRow): Venda {
     canceladoEm: row.cancelado_em,
     canceladoPor: row.cancelado_por,
     confirmacaoMaioridadeEm: row.confirmacao_maioridade_em,
+    cortesia: row.cortesia,
   };
 }
 
@@ -85,6 +87,7 @@ export async function criarVenda(params: {
   itens: ItemCarrinho[];
   formaPagamento: FormaPagamento;
   confirmacaoMaioridade?: boolean;
+  cortesia?: boolean;
 }): Promise<Venda> {
   let temAlcoolico = false;
   for (const item of params.itens) {
@@ -162,6 +165,7 @@ export async function criarVenda(params: {
       pix_qr_code_base64: pixQrCodeBase64,
       pago_em: pagoEm,
       confirmacao_maioridade_em: temAlcoolico ? new Date().toISOString() : null,
+      cortesia: params.cortesia ?? false,
     })
     .select('*')
     .single();
@@ -241,7 +245,7 @@ export async function cancelarVenda(vendaId: string, canceladoPor: string): Prom
     await ajustarEstoque(item.produtoId, item.quantidade);
   }
 
-  await cancelarFichasDaVenda(vendaId);
+  await cancelarFichasDaVenda(vendaId, canceladoPor, 'Venda cancelada');
 }
 
 export async function getVenda(id: string): Promise<Venda | undefined> {

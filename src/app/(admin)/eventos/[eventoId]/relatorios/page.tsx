@@ -1,7 +1,8 @@
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { gerarRelatorioVendas } from '@/lib/data/relatorios';
 import { getClienteAtivoId } from '@/lib/session';
 import { Card } from '@/components/ui/Card';
-import { SemClienteAtivo } from '@/components/SemClienteAtivo';
 import { AutoRefresh } from '@/components/AutoRefresh';
 import { Secao } from '@/components/RelatorioSecoes';
 
@@ -11,36 +12,33 @@ const FORMA_LABEL: Record<string, string> = {
   cartao: 'Cartão',
 };
 
-export default async function RelatoriosPage() {
-  const clienteId = await getClienteAtivoId();
-  if (!clienteId) return <SemClienteAtivo />;
+interface RelatoriosEventoPageProps {
+  params: Promise<{ eventoId: string }>;
+}
 
-  const relatorio = await gerarRelatorioVendas(clienteId);
+export default async function RelatoriosEventoPage({ params }: RelatoriosEventoPageProps) {
+  const { eventoId } = await params;
+  const clienteId = await getClienteAtivoId();
+  if (!clienteId) notFound();
+
+  const relatorio = await gerarRelatorioVendas(clienteId, eventoId);
 
   return (
     <div className="flex flex-col gap-8">
       <AutoRefresh intervalMs={10000} />
-      <div>
-        <h1 className="text-2xl font-semibold">Relatório de vendas</h1>
-        <p className="text-muted text-sm">
-          Considera apenas vendas pagas. Atualiza sozinho a cada 10 segundos.
-        </p>
-      </div>
+      <p className="text-muted text-sm">
+        Considera apenas vendas pagas deste evento (sem cortesias). Atualiza sozinho a cada 10
+        segundos. Veja{' '}
+        <Link href="/relatorios" className="underline">
+          o total de todos os eventos deste produtor
+        </Link>
+        .
+      </p>
 
       <Card>
-        <span className="text-sm text-muted">Total geral</span>
+        <span className="text-sm text-muted">Total do evento</span>
         <p className="text-3xl font-semibold">R$ {relatorio.totalGeral.toFixed(2)}</p>
       </Card>
-
-      <Secao
-        titulo="Por evento"
-        linhas={relatorio.porEvento.map((linha) => ({
-          key: linha.eventoId,
-          label: linha.eventoNome,
-          valor: linha.total,
-          extra: `${linha.quantidadeVendas} venda(s)`,
-        }))}
-      />
 
       <Secao
         titulo="Por forma de pagamento"
@@ -86,7 +84,7 @@ export default async function RelatoriosPage() {
         titulo="Por caixa / terminal"
         linhas={relatorio.porCaixa.map((linha) => ({
           key: linha.caixaId,
-          label: `${linha.operador} — ${linha.eventoNome}`,
+          label: linha.operador,
           valor: linha.total,
           extra: `${linha.quantidadeVendas} venda(s)`,
         }))}

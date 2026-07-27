@@ -20,6 +20,8 @@ interface FichaRow {
   emitida_em: string;
   resgatada_em: string | null;
   resgatada_por: string | null;
+  cancelada_por: string | null;
+  motivo_cancelamento: string | null;
 }
 
 function rowToFicha(row: FichaRow): Ficha {
@@ -35,6 +37,8 @@ function rowToFicha(row: FichaRow): Ficha {
     emitidaEm: row.emitida_em,
     resgatadaEm: row.resgatada_em,
     resgatadaPor: row.resgatada_por,
+    canceladaPor: row.cancelada_por,
+    motivoCancelamento: row.motivo_cancelamento,
   };
 }
 
@@ -145,11 +149,49 @@ export async function resgatarFicha(fichaId: string, resgatadoPor: string): Prom
   return (data?.length ?? 0) > 0;
 }
 
-export async function cancelarFichasDaVenda(vendaId: string): Promise<void> {
+export async function cancelarFichasDaVenda(
+  vendaId: string,
+  canceladoPor: string,
+  motivo: string
+): Promise<void> {
   const { error } = await supabase
     .from('fichas')
-    .update({ status: 'cancelada' })
+    .update({ status: 'cancelada', cancelada_por: canceladoPor, motivo_cancelamento: motivo })
     .eq('venda_id', vendaId)
     .eq('status', 'emitida');
   if (error) throw error;
+}
+
+/** Cancela uma única ficha (hub de Fichas) — não afeta as demais fichas da mesma venda. */
+export async function cancelarFicha(
+  fichaId: string,
+  canceladoPor: string,
+  motivo: string
+): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('fichas')
+    .update({ status: 'cancelada', cancelada_por: canceladoPor, motivo_cancelamento: motivo })
+    .eq('id', fichaId)
+    .eq('status', 'emitida')
+    .select('id');
+  if (error) throw error;
+  return (data?.length ?? 0) > 0;
+}
+
+export async function contarFichasEmitidasPorEvento(eventoId: string): Promise<number> {
+  const { data: vendasData, error: vendasError } = await supabase
+    .from('vendas')
+    .select('id')
+    .eq('evento_id', eventoId);
+  if (vendasError) throw vendasError;
+  const vendaIds = (vendasData as { id: string }[]).map((v) => v.id);
+  if (vendaIds.length === 0) return 0;
+
+  const { count, error } = await supabase
+    .from('fichas')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'emitida')
+    .in('venda_id', vendaIds);
+  if (error) throw error;
+  return count ?? 0;
 }
