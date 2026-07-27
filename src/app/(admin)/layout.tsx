@@ -5,10 +5,13 @@ import { geistSans, geistMono } from "@/lib/fonts";
 import { listClientes } from "@/lib/data/clientes";
 import { getClienteAtivoId } from "@/lib/session";
 import { ClienteSelector } from "@/components/ClienteSelector";
+import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
+import { OnlineStatusIndicator } from "@/components/OnlineStatusIndicator";
 
 export const metadata: Metadata = {
   title: "PDV de Eventos",
   description: "Protótipo de PDV multi-tenant para consumo em eventos",
+  manifest: "/manifest.webmanifest",
 };
 
 const NAV_ITEMS = [
@@ -35,9 +38,13 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
+        <RegisterServiceWorker />
         <header className="print:hidden border-b border-border px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center justify-between sm:justify-start gap-6">
-            <span className="font-semibold text-lg">PDV de Eventos</span>
+            <div className="flex items-center gap-3">
+              <span className="font-semibold text-lg">PDV de Eventos</span>
+              <OnlineStatusIndicator />
+            </div>
             <div className="sm:hidden">
               <ClienteSelector clientes={clientes} ativoId={ativoId} />
             </div>
