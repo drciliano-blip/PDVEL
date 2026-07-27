@@ -7,6 +7,8 @@ import { getClienteAtivoId } from "@/lib/session";
 import { ClienteSelector } from "@/components/ClienteSelector";
 import { RegisterServiceWorker } from "@/components/RegisterServiceWorker";
 import { OnlineStatusIndicator } from "@/components/OnlineStatusIndicator";
+import { ThemeScript } from "@/components/ThemeScript";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export const metadata: Metadata = {
   title: "PDV de Eventos",
@@ -37,6 +39,9 @@ export default async function RootLayout({
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <ThemeScript />
+      </head>
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <RegisterServiceWorker />
         <header className="print:hidden border-b border-border px-4 sm:px-6 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -60,8 +65,11 @@ export default async function RootLayout({
               </Link>
             ))}
           </nav>
-          <div className="hidden sm:block">
-            <ClienteSelector clientes={clientes} ativoId={ativoId} />
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block">
+              <ClienteSelector clientes={clientes} ativoId={ativoId} />
+            </div>
+            <ThemeToggle />
           </div>
         </header>
         <main className="flex-1 px-4 sm:px-6 py-6 sm:py-8 max-w-5xl w-full mx-auto print:p-0 print:max-w-none">{children}</main>
